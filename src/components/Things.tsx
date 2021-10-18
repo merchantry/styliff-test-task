@@ -40,7 +40,7 @@ const calculateBounce = (vector: Vector3, normal: Vector3): Vector3 => {
 const numOfBalls = 2;
 
 let velocities: Array<Vector3Tuple> = [
-    [1, 0, 0],
+    [3, 0, 0],
     [-1, 0, 0],
 ];
 // for (let i = 0; i < numOfBalls; i++) {
@@ -74,17 +74,6 @@ const boxProps: BoxProps[] = [];
 const numOfBoxes = 10;
 const boxSize = 15;
 
-// for (let i = 0; i < numOfBoxes; i++) {
-//     boxProps.push({
-//         size: boxSize,
-//         position: [
-//             (boxSize * i) - (((numOfBoxes * boxSize) / 2) - boxSize / 2), 
-//             0 - (((numOfBoxes * boxSize) / 2) - boxSize / 2), 
-//             0 - (((numOfBoxes * boxSize) / 2) - boxSize / 2)
-//         ]
-//     });
-// }
-
 for (let i = 0; i < numOfBoxes; i++) {
     for (let j = 0; j < numOfBoxes; j++) {
         for (let k = 0; k < numOfBoxes; k++) {
@@ -101,6 +90,10 @@ for (let i = 0; i < numOfBoxes; i++) {
         
     }
 }
+
+const getBoxIndex = (length: number): number => {
+    return Math.floor((length + ((numOfBoxes * boxSize) / 2)) / boxSize);
+};
 
 
 
@@ -121,9 +114,9 @@ const Things = () => {
         updatedPositions[index] = position;
     }, []);
     const boxes = useMemo(() => {
-        return boxProps.map((props) => {
+        return boxProps.map((props, index) => {
             return (
-                <Box {...props}>
+                <Box {...props} key={index}>
                 </Box>
             );
         });
@@ -137,8 +130,13 @@ const Things = () => {
 
         // console.log(JSON.stringify(updatedPositions));
 
-        let vector1 = new Vector3().fromArray(updatedPositions[0]);
-        let vector2 = new Vector3().fromArray(updatedPositions[1]);
+        // let vector1 = new Vector3().fromArray(updatedPositions[0]);
+        // let vector2 = new Vector3().fromArray(updatedPositions[1]);
+        let iIndex = getBoxIndex(updatedPositions[0][0]);
+        let jIndex = getBoxIndex(updatedPositions[0][1]);
+        let kIndex = getBoxIndex(updatedPositions[0][2]);
+
+        console.log(`iIndex ${iIndex}, jIndex ${jIndex}, kIndex ${kIndex}`);
 
 
         // if (vector1.distanceTo(vector2) <= radii[0] + radii[1]) {
