@@ -40,18 +40,18 @@ const calculateBounce = (vector: Vector3, normal: Vector3): Vector3 => {
 const numOfBalls = 2;
 
 let velocities: Array<Vector3Tuple> = [
-    [3, 0, 0],
-    [-1, 0, 0],
+    // [3, 0, 0],
+    // [-1, 0, 0],
 ];
-// for (let i = 0; i < numOfBalls; i++) {
-//     velocities.push(
-//         [
-//             randomNumber(-5, 5),
-//             randomNumber(-5, 5),
-//             randomNumber(-5, 5),
-//         ]
-//     );
-// }
+for (let i = 0; i < numOfBalls; i++) {
+    velocities.push(
+        [
+            randomNumber(-5, 5),
+            randomNumber(-5, 5),
+            randomNumber(-5, 5),
+        ]
+    );
+}
 
 
 let positions: Array<Vector3Tuple> = [
@@ -69,6 +69,7 @@ let positions: Array<Vector3Tuple> = [
 // }
 
 export const VelocityContext = createContext<Array<Vector3Tuple>>(velocities);
+export const FullBoxContext = createContext<Vector3Tuple>(null);
 const boxProps: BoxProps[] = [];
 
 const numOfBoxes = 10;
@@ -83,7 +84,8 @@ for (let i = 0; i < numOfBoxes; i++) {
                     (boxSize * i) - (((numOfBoxes * boxSize) / 2) - boxSize / 2), 
                     (boxSize * j) - (((numOfBoxes * boxSize) / 2) - boxSize / 2), 
                     (boxSize * k) - (((numOfBoxes * boxSize) / 2) - boxSize / 2)
-                ]
+                ],
+                boxIndex: [i, j, k]
             });
             
         }
@@ -104,6 +106,7 @@ const Things = () => {
     ];
 
     let [velocitiesNew, setVelocitiesNew] = useState(velocities);
+    let [fullBoxAt, setFullBoxNew] = useState<Vector3Tuple>(null);
 
     let updatedPositions: Array<Vector3Tuple> = useMemo(() => {
         return positions;
@@ -135,8 +138,9 @@ const Things = () => {
         let iIndex = getBoxIndex(updatedPositions[0][0]);
         let jIndex = getBoxIndex(updatedPositions[0][1]);
         let kIndex = getBoxIndex(updatedPositions[0][2]);
+        setFullBoxNew([iIndex, jIndex, kIndex]);
 
-        console.log(`iIndex ${iIndex}, jIndex ${jIndex}, kIndex ${kIndex}`);
+        // console.log(`iIndex ${iIndex}, jIndex ${jIndex}, kIndex ${kIndex}`);
 
 
         // if (vector1.distanceTo(vector2) <= radii[0] + radii[1]) {
@@ -164,16 +168,22 @@ const Things = () => {
         }
     ];
 
+    const ball = useMemo(() => {
+        return (<Ball {...props[0]} />);
+    }, []);
+
 
 
     return (
         <VelocityContext.Provider value={velocitiesNew}>
-            <Box size={numOfBoxes * boxSize} position={[0, 0, 0]}>
-                {boxes}
-                {/* <Plane rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} scale={[100, 100, 1]} /> */}
-                <Ball {...props[0]} />
-                {/* <Ball radius={radii[1]} onUpdateCallback={onUpdateCallback} index={1} initialPosition={positions[1]} /> */}
-            </Box>
+            <FullBoxContext.Provider value={fullBoxAt}>
+                <Box size={numOfBoxes * boxSize} position={[0, 0, 0]}>
+                    {boxes}
+                    {/* <Plane rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} scale={[100, 100, 1]} /> */}
+                    {ball}
+                    {/* <Ball radius={radii[1]} onUpdateCallback={onUpdateCallback} index={1} initialPosition={positions[1]} /> */}
+                </Box>
+            </FullBoxContext.Provider>
         </VelocityContext.Provider>
     );
 };
