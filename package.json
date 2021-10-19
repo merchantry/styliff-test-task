@@ -29,17 +29,23 @@
         "@babel/core": "^7.11.6",
         "@babel/preset-env": "^7.11.5",
         "@babel/preset-react": "^7.10.4",
+        "@babel/preset-typescript": "^7.15.0",
         "@pmmmwh/react-refresh-webpack-plugin": "^0.4.2",
         "@react-three/test-renderer": "^7.0.15",
-        "@testing-library/react": "^12.1.2",
+        "@types/jest": "^27.0.2",
         "@types/react-dom": "^17.0.9",
         "@types/three": "^0.133.1",
+        "babel-jest": "^27.3.1",
         "babel-loader": "^8.1.0",
         "css-loader": "^5.2.7",
+        "eslint": "^8.0.1",
         "html-webpack-plugin": "^4.4.1",
+        "jest": "^27.3.1",
         "react-refresh": "^0.8.3",
         "style-loader": "^1.2.1",
+        "ts-jest": "^27.0.7",
         "ts-loader": "^9.2.6",
+        "ts-node": "^10.3.0",
         "typescript": "^4.4.4",
         "webpack": "^5.40.0",
         "webpack-cli": "^3.3.12",
@@ -48,6 +54,6 @@
     "scripts": {
         "build": "webpack --mode production",
         "start": "webpack-dev-server --mode development",
-        "test": ""
+        "test": "jest"
     }
 }

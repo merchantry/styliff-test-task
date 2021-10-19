@@ -3,10 +3,12 @@
 ### Installation
 
 Run:
-`git clone https://github.com/merchantry/styliff-test-task.git`
-`cd styliff-test-task`
-`npm install`
-`npm run start`
+```
+git clone https://github.com/merchantry/styliff-test-task.git
+cd styliff-test-task
+npm install
+npm run start
+```
 
 ### Config
 
@@ -21,6 +23,10 @@ const data: BallsProps = {
     showCells: false // If you want to visualize containing cells of balls. Hinders performance a lot if set to true. Best used with low ball count to visualize (eg. 15)
 }
 ```
+
+### Additional features
+
+Clicking on any ball will cycle its color
 
 ### Testing
 Run:

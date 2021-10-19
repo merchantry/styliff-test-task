@@ -5,7 +5,7 @@ import Balls, { BallsProps } from './components/Balls';
 
 export function App() {
     const data: BallsProps = {
-        numOfBalls: 20, // Number of balls to spawn
+        numOfBalls: 300, // Number of balls to spawn
         numOfCells: 10, // Number of cells in the box. More cells == Worse performance
         cellSize: 20, // Size of each cell
         bounceCoolOff: 1000, // Same balls cannot bounce twice in the same period. They need to wait up to bounceCoolOff ms
