@@ -1,29 +1,37 @@
 import { useFrame } from '@react-three/fiber';
-import React, { useContext, useRef } from 'react';
+import React, { useContext, useMemo, useRef, useState } from 'react';
 import { Vector3, Vector3Tuple } from 'three';
-import Line from './Line';
+import { randomNumber } from '../helpers/helper';
 import { VelocityContext } from './Things';
 
-const randomInt = (min: number, max: number): number => {
-    let diff = max - min;
-    return Math.floor(Math.random() * diff) + min;
-};
 
 export interface BallProps { 
-    radius: number, 
+    mass: number, 
     initialPosition?: Vector3Tuple, 
     index: number, 
     onUpdateCallback: CallableFunction 
 }
+const colors = [
+    '#dd3333',
+    '#33dd33',
+    '#3333dd',
+];
 
 
-const Ball = ({ radius, initialPosition = [null, null, null], index, onUpdateCallback }: BallProps) => {
+const Ball = ({ mass, initialPosition = [null, null, null], index, onUpdateCallback }: BallProps) => {
     let ref = useRef<THREE.Mesh>();
 
     let velocity = useContext(VelocityContext);
+    let position = useMemo(() => new Vector3(...initialPosition.map(axis => axis ?? randomNumber(-5, 5))), []);
 
-
-    let position = new Vector3(...initialPosition.map(axis => axis ?? randomInt(-5, 5)));
+    const [colorIndex, setColorIndex] = useState<number>(Math.floor(randomNumber(0, colors.length)));
+    const changeColor = () => {
+        if (colorIndex === colors.length - 1) {
+            setColorIndex(0);
+        } else {
+            setColorIndex(colorIndex => colorIndex + 1);
+        }
+    }
 
     useFrame((state, delta) => {
         ref.current.position.x += delta * velocity[index][0];
@@ -33,11 +41,9 @@ const Ball = ({ radius, initialPosition = [null, null, null], index, onUpdateCal
     });
 
     return (
-        <mesh ref={ref} position={position}>
-            <sphereBufferGeometry attach="geometry" args={[radius, 50]} />
-            <meshStandardMaterial color="#ff0022" />
-            <axesHelper args={[10]} />
-            <Line start={[0, 0, 0]} end={velocity[index].map((vector) => vector * 5) as Vector3Tuple} />
+        <mesh ref={ref} position={position} onClick={changeColor}>
+            <sphereBufferGeometry attach="geometry" args={[mass, 50]} />
+            <meshStandardMaterial color={colors[colorIndex]}/>
         </mesh>
     );
 };

@@ -1,7 +1,6 @@
-import React, { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React from 'react';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stats } from '@react-three/drei';
-import { Vector3 } from 'three';
 import Things from './components/Things';
 
 export function App() {
@@ -9,9 +8,11 @@ export function App() {
 
 
     return (
-        <Canvas camera={{ position: [2, 0, 20] }}>
+        <Canvas camera={{ position: [150, 150, 150] }}>
             <Stats />
-            <pointLight position={[5, 7, 6]} />
+            <pointLight position={[0, 0, 100]} />
+            <pointLight position={[0, 100, 0]} />
+            <pointLight position={[0, -100, 0]} />
             <Things />
             <OrbitControls enableZoom={true}/>
         </Canvas>

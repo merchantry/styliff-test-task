@@ -1,129 +1,98 @@
-import { Plane, Text } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import React, { createContext, useCallback, useDebugValue, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useMemo, useState } from 'react';
 import { Vector3, Vector3Tuple } from 'three';
+import { calculateBounce, getArrayWithRadnomVectors, getContainingBoxes, randomNumber } from '../helpers/helper';
 import Ball, { BallProps } from './Ball';
 import Box, { BoxProps } from './Box';
 
 
-const randomNumber = (min: number, max: number): number => {
-    let diff = max - min;
-    return Math.random() * diff + min;
-};
 
-// const distance = (vector1: Vector3, vector2: Vector3): number => {
-//     return Math.sqrt(
-//         Math.pow(vector1.x - vector2.x, 2)
-//         + Math.pow(vector1.y - vector2.y, 2)
-//         + Math.pow(vector1.z - vector2.z, 2)
-//     );
-// };
-
-
-const calculateBounce = (vector: Vector3, normal: Vector3): Vector3 => {
-    let newVector = vector.clone();
-    let newNormal = normal.clone();
-
-    let friction: number = 1;
-    let elasticity: number = 1;
-
-
-    let parallel = newNormal.multiplyScalar(-newVector.dot(newNormal) / newNormal.dot(newNormal));
-    let perpendicular = newVector.sub(parallel);
-    let result = perpendicular.multiplyScalar(friction * 0.25).sub(parallel.multiplyScalar(elasticity * 0.25))
-
-
-    return result;
-
-};
-
-const numOfBalls = 2;
-
-let velocities: Array<Vector3Tuple> = [
-    // [3, 0, 0],
-    // [-1, 0, 0],
-];
-for (let i = 0; i < numOfBalls; i++) {
-    velocities.push(
-        [
-            randomNumber(-5, 5),
-            randomNumber(-5, 5),
-            randomNumber(-5, 5),
-        ]
-    );
-}
-
-
-let positions: Array<Vector3Tuple> = [
-    [-4, 1.25, 0],
-    [4, -2.5, 0],
-];
-// for (let i = 0; i < numOfBalls; i++) {
-//     positions.push(
-//         [
-//             randomNumber(-5, 5),
-//             randomNumber(-5, 5),
-//             randomNumber(-5, 5),
-//         ]
-//     );
-// }
-
-export const VelocityContext = createContext<Array<Vector3Tuple>>(velocities);
-export const FullBoxContext = createContext<Vector3Tuple>(null);
-const boxProps: BoxProps[] = [];
-
+const numOfBalls = 100;
 const numOfBoxes = 10;
 const boxSize = 15;
+const bounceCoolOff = 3000;
+const maxLimit = (numOfBoxes * boxSize) / 2;
+const minLimit = -maxLimit;
 
-for (let i = 0; i < numOfBoxes; i++) {
-    for (let j = 0; j < numOfBoxes; j++) {
-        for (let k = 0; k < numOfBoxes; k++) {
-            boxProps.push({
-                size: boxSize,
-                position: [
-                    (boxSize * i) - (((numOfBoxes * boxSize) / 2) - boxSize / 2), 
-                    (boxSize * j) - (((numOfBoxes * boxSize) / 2) - boxSize / 2), 
-                    (boxSize * k) - (((numOfBoxes * boxSize) / 2) - boxSize / 2)
-                ],
-                boxIndex: [i, j, k]
-            });
-            
-        }
-        
-    }
-}
 
-const getBoxIndex = (length: number): number => {
-    return Math.floor((length + ((numOfBoxes * boxSize) / 2)) / boxSize);
-};
+
+export const VelocityContext = createContext<Array<Vector3Tuple>>(null);
+export const HighlightedBoxesContext = createContext<Array<Vector3Tuple>>(null);
 
 
 
 const Things = () => {
-    let radii = [
-        2,
-        2
-    ];
 
-    let [velocitiesNew, setVelocitiesNew] = useState(velocities);
-    let [fullBoxAt, setFullBoxNew] = useState<Vector3Tuple>(null);
-
-    let updatedPositions: Array<Vector3Tuple> = useMemo(() => {
-        return positions;
-    }, []);
+    let [velocities, setVelocities] = useState(getArrayWithRadnomVectors(numOfBalls, -50, 50));
+    let [highlightedBoxes, setHighlightedBoxes] = useState<Array<Vector3Tuple>>(null);
 
 
     const onUpdateCallback = useCallback((position: Vector3Tuple, index: number) => {
         updatedPositions[index] = position;
     }, []);
-    const boxes = useMemo(() => {
-        return boxProps.map((props, index) => {
-            return (
-                <Box {...props} key={index}>
-                </Box>
+
+
+    let updatedPositions: Array<Vector3Tuple> = useMemo(() => getArrayWithRadnomVectors(numOfBalls, minLimit + 5, maxLimit - 5), []);
+
+
+    
+
+    // const boxProps: BoxProps[] = useMemo(() => {
+    //     let boxProps: BoxProps[] = [];
+    //     for (let i = 0; i < numOfBoxes; i++) {
+    //         for (let j = 0; j < numOfBoxes; j++) {
+    //             for (let k = 0; k < numOfBoxes; k++) {
+    //                 boxProps.push({
+    //                     size: boxSize,
+    //                     position: [
+    //                         (boxSize * i) - (((numOfBoxes * boxSize) / 2) - boxSize / 2),
+    //                         (boxSize * j) - (((numOfBoxes * boxSize) / 2) - boxSize / 2),
+    //                         (boxSize * k) - (((numOfBoxes * boxSize) / 2) - boxSize / 2)
+    //                     ],
+    //                     boxIndex: [i, j, k]
+    //                 });
+
+    //             }
+
+    //         }
+    //     }
+
+    //     return boxProps;
+    // }, [highlightedBoxes]);
+
+    // const boxes = useMemo(() => {
+    //     return boxProps.map((props, index) => {
+    //         return (
+    //             <Box {...props} key={index}>
+    //             </Box>
+    //         );
+    //     });
+    // }, []);
+
+    const ballProps: BallProps[] = useMemo(() => {
+        let ballProps: BallProps[] = [];
+        for (let i = 0; i < numOfBalls; i++) {
+            ballProps.push(
+                {
+                    mass: randomNumber(1, 5),
+                    index: i,
+                    initialPosition: updatedPositions[i],
+                    onUpdateCallback: onUpdateCallback
+                }
             );
-        });
+        }
+        return ballProps;
     }, []);
+
+    const balls = useMemo(() => {
+        return ballProps.map((ballProp) => {
+            return (<Ball {...ballProp} key={ballProp.index} />);
+        })
+    }, []);
+
+    
+    const [lastBounceUpdate, setLastBounceUpdate] = useState(Date.now());
+    const [recordedBounces, setRecorderBounces] = useState<{ [key: string]: boolean }>({});
 
 
 
@@ -131,59 +100,94 @@ const Things = () => {
 
     useFrame(() => {
 
-        // console.log(JSON.stringify(updatedPositions));
-
-        // let vector1 = new Vector3().fromArray(updatedPositions[0]);
-        // let vector2 = new Vector3().fromArray(updatedPositions[1]);
-        let iIndex = getBoxIndex(updatedPositions[0][0]);
-        let jIndex = getBoxIndex(updatedPositions[0][1]);
-        let kIndex = getBoxIndex(updatedPositions[0][2]);
-        setFullBoxNew([iIndex, jIndex, kIndex]);
-
-        // console.log(`iIndex ${iIndex}, jIndex ${jIndex}, kIndex ${kIndex}`);
-
-
-        // if (vector1.distanceTo(vector2) <= radii[0] + radii[1]) {
-
-
-
-        //     const bridge = vector1.clone();
-        //     const vector1Copy = vector1.clone();
-        //     const vector2Copy = vector2.clone();
-        //     bridge.sub(vector2Copy);
-        //     setVelocitiesNew([calculateBounce(vector1Copy, bridge).toArray(), calculateBounce(vector2Copy, bridge).toArray()]);
-
-
-
-
-        // }
-    });
-
-    const props: BallProps[] = [
-        {
-            radius: 2,
-            index: 0,
-            initialPosition: [-4, 1.25, 0],
-            onUpdateCallback: onUpdateCallback
+        if (lastBounceUpdate + bounceCoolOff <= Date.now()) {
+            setRecorderBounces({});
+            setLastBounceUpdate(Date.now());
         }
-    ];
 
-    const ball = useMemo(() => {
-        return (<Ball {...props[0]} />);
-    }, []);
+
+        let newVelocities = velocities;
+        let contBoxes: Array<Vector3Tuple> = [];
+        let ballContainingBoxes;
+        const ballsInCellsHashTable: {
+            [key: string]: Array<number>
+        } = {};
+
+
+        ballProps.forEach((props, index) => {
+
+            updatedPositions[index].forEach((axis, axisIndex) => {
+                if (axis - ballProps[index].mass <= minLimit) {
+                    newVelocities[index][axisIndex] = Math.abs(newVelocities[index][axisIndex]);
+                }
+
+                if (axis + ballProps[index].mass >= maxLimit) {
+                    newVelocities[index][axisIndex] = -Math.abs(newVelocities[index][axisIndex]);
+                }
+            });
+            ballContainingBoxes = getContainingBoxes(updatedPositions[index], props.mass, boxSize, numOfBoxes);
+            contBoxes = contBoxes.concat(ballContainingBoxes);
+
+            ballContainingBoxes.forEach((cell, cellIndex) => {
+                let hashTableKey = JSON.stringify(cell);
+                if (!ballsInCellsHashTable.hasOwnProperty(hashTableKey)) {
+
+                    ballsInCellsHashTable[hashTableKey] = [index] as Array<number>;
+
+                } else {
+
+
+                    ballsInCellsHashTable[hashTableKey].forEach((ballIndex) => {
+                        if (props.index !== ballIndex) {
+                            let vector1 = new Vector3().fromArray(updatedPositions[props.index]);
+                            let vector2 = new Vector3().fromArray(updatedPositions[ballIndex]);
+                            let alreadyBounced = 
+                                recordedBounces.hasOwnProperty(JSON.stringify([props.index, ballIndex])) 
+                                && recordedBounces.hasOwnProperty(JSON.stringify([ballIndex, props.index]));
+
+                            if (vector1.distanceTo(vector2) <= props.mass + ballProps[ballIndex].mass && !alreadyBounced) {
+                                setRecorderBounces(recordedBounces => {
+                                    recordedBounces[JSON.stringify([props.index, ballIndex])] = true;
+                                    recordedBounces[JSON.stringify([ballIndex, props.index])] = true;
+                                    return recordedBounces;
+                                })
+
+                                const bridge = vector1.clone();
+                                const vector1Copy = vector1.clone();
+                                const vector2Copy = vector2.clone();
+                                bridge.sub(vector2Copy);
+                                newVelocities[props.index] = calculateBounce(vector1Copy, bridge).toArray();
+                                newVelocities[ballIndex] = calculateBounce(vector2Copy, bridge).toArray();
+
+
+                            }
+                        }
+
+                    });
+
+
+                    ballsInCellsHashTable[hashTableKey].push(index as number);
+
+                }
+            });
+
+        });
+        setVelocities(newVelocities);
+        setHighlightedBoxes(contBoxes);
+
+
+    });
 
 
 
     return (
-        <VelocityContext.Provider value={velocitiesNew}>
-            <FullBoxContext.Provider value={fullBoxAt}>
+        <VelocityContext.Provider value={velocities}>
+            <HighlightedBoxesContext.Provider value={highlightedBoxes}>
                 <Box size={numOfBoxes * boxSize} position={[0, 0, 0]}>
-                    {boxes}
-                    {/* <Plane rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} scale={[100, 100, 1]} /> */}
-                    {ball}
-                    {/* <Ball radius={radii[1]} onUpdateCallback={onUpdateCallback} index={1} initialPosition={positions[1]} /> */}
+                    {/* {boxes} */}
+                    {balls}
                 </Box>
-            </FullBoxContext.Provider>
+            </HighlightedBoxesContext.Provider>
         </VelocityContext.Provider>
     );
 };
