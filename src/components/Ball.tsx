@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import React, { useContext, useMemo, useRef, useState } from 'react';
 import { Vector3, Vector3Tuple } from 'three';
 import { randomNumber } from '../helpers/helper';
-import { VelocityContext } from './Things';
+import { VelocityContext } from './Balls';
 
 
 export interface BallProps { 

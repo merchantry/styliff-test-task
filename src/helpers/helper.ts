@@ -5,13 +5,19 @@ export const randomNumber = (min: number, max: number): number => {
     return Math.random() * diff + min;
 };
 
-
-export const calculateBounce = (vector: Vector3, normal: Vector3): Vector3 => {
+/**
+ * Calaculate the bounce vector from given vector, normal of collision object and mass of ball
+ * @param vector ball position vector
+ * @param normal collision object normal
+ * @param mass ball mass
+ * @returns Vector3
+ */
+export const calculateBallBounceVector = (vector: Vector3, normal: Vector3, mass: number): Vector3 => {
     let newVector = vector.clone();
     let newNormal = normal.clone();
 
-    let friction: number = 0.5;
-    let elasticity: number = 0.25;
+    const friction: number = 4 / mass;          // Friction and elasticity constants can be 
+    const elasticity: number = 0.7 / mass;      // further manipulated to refine bouncing physics of balls
 
 
     let parallel = newNormal.multiplyScalar(-newVector.dot(newNormal) / newNormal.dot(newNormal));
@@ -22,24 +28,42 @@ export const calculateBounce = (vector: Vector3, normal: Vector3): Vector3 => {
     return result;
 
 };
-export const getBoxIndex = (length: number, boxSize: number, numOfBoxes: number): number => {
-    return Math.floor((length + ((numOfBoxes * boxSize) / 2)) / boxSize);
+
+/**
+ * Get a 1-dimensional index of cell
+ * @param length 1-dimensional position parameter
+ * @param cellSize size of each cell
+ * @param numOfCells total number of cells in one dimension
+ * @returns number
+ */
+export const getCellIndex = (length: number, cellSize: number, numOfCells: number): number => {
+    return Math.floor((length + ((numOfCells * cellSize) / 2)) / cellSize);
 };
 
-export const getContainingBoxes = (position: Vector3Tuple, radius: number, boxSize: number, numOfBoxes: number): Array<Vector3Tuple> => {
-    let containingBoxes: Array<Vector3Tuple> = [
-        position.map(axis => getBoxIndex(axis, boxSize, numOfBoxes)) as Vector3Tuple
+
+/**
+ * Array of cell indices which contain the object at the given position and with radius. Can return a max of 8 cells
+ * @param position 3-dimensional position
+ * @param radius Radius/Mass of object. Used to get neighbouring cells if the object touches their edges
+ * @param cellSize size of each cell
+ * @param numOfCells total number of cells in one dimension
+ * @returns Array<Vector3Tuple>
+ */
+export const getBallContainingCells = (position: Vector3Tuple, radius: number, cellSize: number, numOfCells: number): Array<Vector3Tuple> => {
+    let containingCells: Array<Vector3Tuple> = [
+        position.map(axis => getCellIndex(axis, cellSize, numOfCells)) as Vector3Tuple
     ];
-    let centre = containingBoxes[0].map((axisIndex, index) => {
-        return (axisIndex * boxSize + boxSize / 2) - boxSize * numOfBoxes / 2;
+    let center = containingCells[0].map((axisIndex, index) => {
+        return (axisIndex * cellSize + cellSize / 2) - cellSize * numOfCells / 2;
     });
+    // Edges the ball is touching [x: (-1|1|0), y: (-1|1|0), z: (-1|1|0)] 
     let edges: Vector3Tuple = [0, 0, 0];
 
     position.forEach((axis, index) => {
 
-        if (axis + radius >= centre[index] + boxSize / 2) {
+        if (axis + radius >= center[index] + cellSize / 2) {
             edges[index] = 1;
-        } else if (axis - radius <= centre[index] - boxSize / 2) {
+        } else if (axis - radius <= center[index] - cellSize / 2) {
             edges[index] = -1;
         }
 
@@ -47,16 +71,16 @@ export const getContainingBoxes = (position: Vector3Tuple, radius: number, boxSi
 
     edges.forEach((edge, index) => {
         if (edge !== 0) {
-            containingBoxes.push(containingBoxes[0].map((centreBoxAxis, centreBoxAxisIndex) => {
-                return centreBoxAxisIndex === index ? centreBoxAxis + edge : centreBoxAxis;
+            containingCells.push(containingCells[0].map((centerCellAxis, centerCellAxisIndex) => {
+                return centerCellAxisIndex === index ? centerCellAxis + edge : centerCellAxis;
             }) as Vector3Tuple);
         }
 
         if (edges.every((deepEdge, deepIndex) => {
             return deepIndex === index || deepEdge !== 0;
         })) {
-            containingBoxes.push(containingBoxes[0].map((centreBoxAxis, centreBoxAxisIndex) => {
-                return centreBoxAxisIndex !== index ? centreBoxAxis + edges[centreBoxAxisIndex] : centreBoxAxis;
+            containingCells.push(containingCells[0].map((centerCellAxis, centerCellAxisIndex) => {
+                return centerCellAxisIndex !== index ? centerCellAxis + edges[centerCellAxisIndex] : centerCellAxis;
             }) as Vector3Tuple);
         }
     });
@@ -64,15 +88,25 @@ export const getContainingBoxes = (position: Vector3Tuple, radius: number, boxSi
     if (edges.every((edge) => {
         return edge !== 0;
     })) {
-        containingBoxes.push(containingBoxes[0].map((centreBoxAxis, centreBoxAxisIndex) => {
-            return centreBoxAxis + edges[centreBoxAxisIndex];
+        containingCells.push(containingCells[0].map((centerCellAxis, centerCellAxisIndex) => {
+            return centerCellAxis + edges[centerCellAxisIndex];
         }) as Vector3Tuple);
     }
 
+    // numOfContainingCells === numOfTouchedEdges ^ 2 
 
-    return containingBoxes;
+
+    return containingCells;
 }
 
+
+/**
+ * Checks if parent array contains search array
+ * 
+ * @param searchArray array to look for
+ * @param parentArray search in this array
+ * @returns boolean
+ */
 export const isArrayInArray = (searchArray: Array<any>, parentArray: Array<Array<any>>): boolean => {
     let foundIndex = parentArray.findIndex((array, index) => {
         return array.every((el, i) => {
@@ -83,6 +117,14 @@ export const isArrayInArray = (searchArray: Array<any>, parentArray: Array<Array
     return foundIndex !== -1;
 };
 
+
+/**
+ * Get an array with random vector tuples. Provide lenght of array and min & max axis values
+ * @param length length of the returned array
+ * @param minAxis minimum axis value
+ * @param maxAxis maximum axis value
+ * @returns Array<Vector3Tuple>
+ */
 export const getArrayWithRadnomVectors = (length: number, minAxis: number, maxAxis: number): Array<Vector3Tuple> => {
     let array: Array<Vector3Tuple> = [];
     for (let i = 0; i < length; i++) {

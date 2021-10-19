@@ -1,8 +1,8 @@
 import { useFrame } from '@react-three/fiber';
-import React, { useContext, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { BackSide, FrontSide, Vector3Tuple } from 'three';
 import { isArrayInArray } from '../helpers/helper';
-import { HighlightedBoxesContext } from './Things';
+import { HighlightedBoxesContext } from './Balls';
 
 
 export interface BoxProps { 
@@ -18,9 +18,9 @@ const Box = ({ size, position, boxIndex, children }: BoxProps) => {
 
     const highlightedBoxes = useContext(HighlightedBoxesContext);
 
-    useFrame((state, delta) => {
+    useFrame(() => {
         if (boxIndex && highlightedBoxes && isArrayInArray(boxIndex, highlightedBoxes)) {
-            if (!ref.current.visible) ref.current.visible = true;
+            ref.current.visible = true;
         } 
         else {
             ref.current.visible = !boxIndex;
@@ -32,7 +32,7 @@ const Box = ({ size, position, boxIndex, children }: BoxProps) => {
     return (
         <mesh ref={ref} position={position}>
             <boxBufferGeometry attach="geometry" args={[size, size, size]}/>
-            <meshStandardMaterial color={children ? '#c99c3a' : '#000000'} side={children ? BackSide : FrontSide} visible={!boxIndex}/** */ wireframe={!children}/>
+            <meshStandardMaterial color={children ? '#c99c3a' : '#000000'} side={children ? BackSide : FrontSide} wireframe={!children}/>
             {children}
         </mesh>
     );
