@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useRef } from 'react';
 import { BackSide, FrontSide, Vector3Tuple } from 'three';
 import { isArrayInArray } from '../helpers/helper';
 import { HighlightedBoxesContext } from './Balls';

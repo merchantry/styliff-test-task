@@ -40,6 +40,19 @@ export const getCellIndex = (length: number, cellSize: number, numOfCells: numbe
     return Math.floor((length + ((numOfCells * cellSize) / 2)) / cellSize);
 };
 
+/**
+ * Get 1-dimensional position from cell index and environment size
+ * @param index 1-dimensional position parameter
+ * @param cellSize size of each cell
+ * @param numOfCells total number of cells in one dimension
+ * @returns number
+ */
+ export const getCellPosition = (index: number, cellSize: number, numOfCells: number): number => {
+    return (cellSize * index) - (((numOfCells * cellSize) / 2) - cellSize / 2);
+};
+
+
+
 
 /**
  * Array of cell indices which contain the object at the given position and with radius. Can return a max of 8 cells

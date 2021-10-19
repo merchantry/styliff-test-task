@@ -21,7 +21,7 @@ const colors = [
 const Ball = ({ mass, initialPosition = [null, null, null], index, onUpdateCallback }: BallProps) => {
     let ref = useRef<THREE.Mesh>();
 
-    let velocity = useContext(VelocityContext);
+    let velocity: Array<Vector3Tuple> = useContext(VelocityContext);
     let position = useMemo(() => new Vector3(...initialPosition.map(axis => axis ?? randomNumber(-5, 5))), []);
 
     const [colorIndex, setColorIndex] = useState<number>(Math.floor(randomNumber(0, colors.length)));
@@ -37,7 +37,7 @@ const Ball = ({ mass, initialPosition = [null, null, null], index, onUpdateCallb
         ref.current.position.x += delta * velocity[index][0];
         ref.current.position.y += delta * velocity[index][1];
         ref.current.position.z += delta * velocity[index][2];
-        onUpdateCallback(Object.values(ref.current.position), index);
+        onUpdateCallback(ref.current.position.toArray(), index);
     });
 
     return (

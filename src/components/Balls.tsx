@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import React, { createContext, useCallback, useMemo, useState } from 'react';
 import { Vector3, Vector3Tuple } from 'three';
-import { calculateBallBounceVector, getArrayWithRadnomVectors, getBallContainingCells, randomNumber } from '../helpers/helper';
+import { calculateBallBounceVector, getArrayWithRadnomVectors, getBallContainingCells, getCellPosition, randomNumber } from '../helpers/helper';
 import Ball, { BallProps } from './Ball';
 import Box, { BoxProps } from './Box';
 import Line from './Line';
@@ -52,9 +52,9 @@ const Balls = ({ numOfBalls, numOfCells, cellSize, bounceCoolOff, maxSpeed, show
                     boxProps.push({
                         size: cellSize,
                         position: [
-                            (cellSize * i) - (((numOfCells * cellSize) / 2) - cellSize / 2),
-                            (cellSize * j) - (((numOfCells * cellSize) / 2) - cellSize / 2),
-                            (cellSize * k) - (((numOfCells * cellSize) / 2) - cellSize / 2)
+                            getCellPosition(i, cellSize, numOfCells),
+                            getCellPosition(j, cellSize, numOfCells),
+                            getCellPosition(k, cellSize, numOfCells),
                         ],
                         boxIndex: [i, j, k]
                     });
